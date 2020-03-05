@@ -42,16 +42,15 @@ int main(void)
         // YOU MUST WRITE timer1expired IN myTimer.c
         if (timer1Expired())
         {
-            checkStatus_BoosterpackS1();
+            buttonhistory = checkStatus_BoosterpackS1();
         }
 
         // TODO: Call the button state machine function to check for a completed, debounced button press.
         // YOU MUST WRITE THIS FUNCTION BELOW.
-
         fsmBoosterpackButtonS1(buttonhistory);
 
         // TODO: If a completed, debounced button press has occurred, increment count1.
-        if (fsmBoosterpackButtonS1(buttonhistory))
+        if (fsmBoosterpackButtonS1(buttonhistory) == true)
         {
             count1++;
         }
@@ -176,21 +175,39 @@ void changeBoosterpackLED(unsigned int count)
 bool fsmBoosterpackButtonS1(unsigned char buttonhistory)
 {
     bool pressed = false;
-    typedef enum {s0, s1, s3} buttonState;
+    bool restartStates = false;
+    typedef enum {s0, s1, s2, s3} buttonState;
     static buttonState currentState = s0;
 
     switch(currentState)
     {
         case s0:
-            if (buttonhistory != UNPRESSED)
+            pressed = false;
+            if (buttonhistory == UNPRESSED)
                 currentState = s1;
+            else
+                currentState = s0;
             break;
         case s1:
-            if (buttonhistory = UNPRESSED)
+            pressed = false;
+            if (buttonhistory != UNPRESSED)
+                currentState = s2;
+            else
+                currentState = s1;
+            break;
+        case s2:
+            pressed = false;
+            if (buttonhistory == UNPRESSED)
                 currentState = s3;
             break;
-
-
+        case s3:
+            pressed = true;
+            if (restartStates == true)
+                currentState = s0;
+            break;
+        default:
+            currentState = s0;
+            pressed = false;
     }
     return pressed;
 }
