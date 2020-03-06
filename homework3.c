@@ -3,7 +3,8 @@
 #include "myGPIO.h"
 #include "myTimer.h"
 
-#define UNPRESSED   0x00
+#define UNPRESSED   0xff
+#define PRESSED     0x00
 
 int main(void)
 {
@@ -45,16 +46,17 @@ int main(void)
             buttonhistory = checkStatus_BoosterpackS1();
         }
 
-        // TODO: Call the button state machine function to check for a completed, debounced button press.
-        // YOU MUST WRITE THIS FUNCTION BELOW.
         fsmBoosterpackButtonS1(buttonhistory);
 
+        // TODO: Call the button state machine function to check for a completed, debounced button press.
+        // YOU MUST WRITE THIS FUNCTION BELOW.
+        if ((checkStatus_BoosterpackS1()) == PRESSED && (fsmBoosterpackButtonS1(buttonhistory) == true))
+        {
+            changeBoosterpackLED(count1);
+        }
         // TODO: If a completed, debounced button press has occurred, increment count1.
         if (fsmBoosterpackButtonS1(buttonhistory) == true)
-        {
             count1++;
-        }
-
 
     }
 }
@@ -124,44 +126,44 @@ void changeBoosterpackLED(unsigned int count)
     switch(count & 7)
     {
         case 0:
-            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDRed();
             turnOff_BoosterpackLEDGreen();
             turnOff_BoosterpackLEDBlue();
             break;
         case 1:
-            turnOff_BoosterpackLEDRed();
-            turnOn_BoosterpackLEDGreen();
+            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDGreen();
             turnOff_BoosterpackLEDBlue();
             break;
         case 2:
-            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDRed();
             turnOn_BoosterpackLEDGreen();
             turnOff_BoosterpackLEDBlue();
             break;
         case 3:
-            turnOff_BoosterpackLEDRed();
-            turnOff_BoosterpackLEDGreen();
-            turnOn_BoosterpackLEDBlue();
+            turnOn_BoosterpackLEDRed();
+            turnOn_BoosterpackLEDGreen();
+            turnOff_BoosterpackLEDBlue();
             break;
         case 4:
-            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDRed();
             turnOff_BoosterpackLEDGreen();
             turnOn_BoosterpackLEDBlue();
             break;
         case 5:
-            turnOff_BoosterpackLEDRed();
-            turnOn_BoosterpackLEDGreen();
+            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDGreen();
             turnOn_BoosterpackLEDBlue();
             break;
         case 6:
-            turnOn_BoosterpackLEDRed();
+            turnOff_BoosterpackLEDRed();
             turnOn_BoosterpackLEDGreen();
             turnOn_BoosterpackLEDBlue();
             break;
         case 7:
-            turnOff_BoosterpackLEDRed();
-            turnOff_BoosterpackLEDGreen();
-            turnOff_BoosterpackLEDBlue();
+            turnOn_BoosterpackLEDRed();
+            turnOn_BoosterpackLEDGreen();
+            turnOn_BoosterpackLEDBlue();
             break;
         default:
             turnOff_BoosterpackLEDRed();
@@ -175,39 +177,32 @@ void changeBoosterpackLED(unsigned int count)
 bool fsmBoosterpackButtonS1(unsigned char buttonhistory)
 {
     bool pressed = false;
-    bool restartStates = false;
     typedef enum {s0, s1, s2, s3} buttonState;
     static buttonState currentState = s0;
+    unsigned char test1;
+    unsigned char test2;
 
     switch(currentState)
     {
         case s0:
-            pressed = false;
-            if (buttonhistory == UNPRESSED)
-                currentState = s1;
-            else
-                currentState = s0;
+            test1 = buttonhistory;
+            currentState = s1;
             break;
         case s1:
-            pressed = false;
-            if (buttonhistory != UNPRESSED)
-                currentState = s2;
-            else
-                currentState = s1;
+            test2 = buttonhistory;
+            currentState = s2;
             break;
         case s2:
-            pressed = false;
-            if (buttonhistory == UNPRESSED)
-                currentState = s3;
+            if(test1 != test2 )
+                pressed = true;
+            currentState = s3;
             break;
         case s3:
-            pressed = true;
-            if (restartStates == true)
-                currentState = s0;
+            currentState = s0;
             break;
         default:
-            currentState = s0;
-            pressed = false;
+            break;
     }
+
     return pressed;
 }
